@@ -45,11 +45,7 @@
       cursor: pointer;
       border: none;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      transition: transform 0.1s, opacity 0.2s;
-    }
-
-    .btn:active {
-      transform: scale(0.95);
+      transition: transform 0.1s, filter 0.2s;
     }
 
     #green { background-color: #2ecc71; }
@@ -58,7 +54,8 @@
     #blue { background-color: #3498db; }
 
     .flash {
-      opacity: 0.5;
+      filter: brightness(2) drop-shadow(0 0 15px white);
+      transform: scale(1.05);
     }
 
     #startBtn, #returnBtn {
@@ -120,13 +117,6 @@
     const startBtn = document.getElementById("startBtn");
     const difficultySelect = document.getElementById("difficulty");
 
-    const sounds = {
-      green: new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"),
-      red: new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"),
-      yellow: new Audio("https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"),
-      blue: new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg")
-    };
-
     // Handle difficulty change
     difficultySelect.addEventListener("change", () => {
       const diff = difficultySelect.value;
@@ -138,8 +128,7 @@
     function flash(btn) {
       const el = document.getElementById(btn);
       el.classList.add("flash");
-      sounds[btn].play();
-      setTimeout(() => el.classList.remove("flash"), 300);
+      setTimeout(() => el.classList.remove("flash"), 400);
     }
 
     function nextSequence() {
