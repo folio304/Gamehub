@@ -1,102 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nitish’s Game Zone</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nitish's Game Dashboard</title>
   <style>
     body {
       margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #1e1e2f, #2b5876);
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #1f1f1f, #3b3b3b);
       color: white;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      padding: 30px 10px;
+      font-size: 2em;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .container {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      overflow: hidden;
-    }
-
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 20px;
-      text-align: center;
-      letter-spacing: 1px;
-    }
-
-    .dashboard {
-      background: rgba(255, 255, 255, 0.1);
-      padding: 20px 30px;
-      border-radius: 15px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      text-align: center;
-      width: 300px;
-      backdrop-filter: blur(8px);
-    }
-
-    select, button {
-      width: 100%;
-      padding: 10px;
-      margin-top: 10px;
-      border-radius: 8px;
-      border: none;
-      font-size: 1rem;
-      transition: 0.3s ease;
     }
 
     select {
-      background-color: #2b2b40;
-      color: white;
+      padding: 10px 15px;
+      font-size: 1em;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      background: #f1f1f1;
+      color: #333;
+      margin: 15px 0;
+      width: 220px;
+      text-align: center;
       cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    select:hover {
+      background: #e0e0e0;
     }
 
     button {
-      background-color: #00c6ff;
-      color: white;
-      font-weight: bold;
+      padding: 10px 25px;
+      font-size: 1em;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
+      background: #007bff;
+      color: white;
+      transition: background 0.3s;
     }
 
     button:hover {
-      background-color: #0096d1;
+      background: #0056b3;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      background: #121212;
+      font-size: 0.9em;
+      border-top: 1px solid #333;
     }
   </style>
 </head>
 <body>
+  <header>🎮 Nitish’s Game Dashboard</header>
 
-  <h1>🎮 Nitish’s Game Zone</h1>
-
-  <div class="dashboard">
-    <label for="gameSelect">Choose a Game:</label>
+  <div class="container">
+    <label for="gameSelect">Select a Game:</label>
     <select id="gameSelect">
-      <option value="" selected disabled>Select Game</option>
-      <option value="tic-tac-toe">Tic Tac Toe</option>
-      <!-- More games will be added later -->
+      <option value="">-- Choose Game --</option>
+      <option value="tic-tac-toe.html">Tic Tac Toe</option>
+      <option value="snake.html">Snake</option>
+      <option value="rps.html">Rock Paper Scissors</option>
     </select>
 
     <button id="playButton">Play</button>
   </div>
+
+  <footer>
+    Designed by Nitish Agrawal | All rights reserved
+  </footer>
 
   <script>
     const playButton = document.getElementById('playButton');
     const gameSelect = document.getElementById('gameSelect');
 
     playButton.addEventListener('click', () => {
-      const selectedGame = gameSelect.value;
-      if (!selectedGame) {
-        alert('Please select a game first!');
-        return;
+      const selected = gameSelect.value;
+      if (selected) {
+        // Use JavaScript redirect (no page refresh issue)
+        window.location.href = selected;
+      } else {
+        alert("Please select a game first!");
       }
-
-      // Redirect to selected game page
-      if (selectedGame === 'tic-tac-toe') {
-        window.location.href = 'tic-tac-toe.html';
-      }
-      // Future games can be added like:
-      // else if (selectedGame === 'snake') window.location.href = 'games/snake.html';
     });
   </script>
-
 </body>
 </html>
