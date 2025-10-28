@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nitish's Game Dashboard</title>
+  <title>Nitish’s Game Dashboard</title>
   <style>
     body {
       margin: 0;
@@ -94,16 +94,12 @@
   </footer>
 
   <script>
-    const playButton = document.getElementById('playButton');
-    const gameSelect = document.getElementById('gameSelect');
-
-    playButton.addEventListener('click', () => {
-      const selected = gameSelect.value;
-      if (selected) {
-        // Use JavaScript redirect (no page refresh issue)
-        window.location.href = selected;
+    document.getElementById('playButton').addEventListener('click', () => {
+      const game = document.getElementById('gameSelect').value;
+      if (game) {
+        window.location.href = game;
       } else {
-        alert("Please select a game first!");
+        alert('Please select a game first!');
       }
     });
   </script>
