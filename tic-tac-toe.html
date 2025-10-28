@@ -4,87 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tic Tac Toe | Nitish’s Games</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: "Poppins", sans-serif;
-      background: linear-gradient(135deg, #1f1f1f, #3b3b3b);
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 100vh;
-    }
-
-    h1 {
-      margin-top: 30px;
-      font-size: 2em;
-      letter-spacing: 1px;
-    }
-
-    .board {
-      display: grid;
-      grid-template-columns: repeat(3, 100px);
-      grid-template-rows: repeat(3, 100px);
-      gap: 10px;
-      margin-top: 40px;
-    }
-
-    .cell {
-      width: 100px;
-      height: 100px;
-      background: #2f2f2f;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2em;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .cell:hover {
-      background: #444;
-    }
-
-    .message {
-      margin-top: 25px;
-      font-size: 1.2em;
-    }
-
-    .controls {
-      margin-top: 25px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-    }
-
-    button {
-      padding: 10px 20px;
-      font-size: 1em;
-      border: none;
-      border-radius: 8px;
-      background: #007bff;
-      color: white;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    footer {
-      width: 100%;
-      text-align: center;
-      padding: 15px;
-      background: #121212;
-      font-size: 0.9em;
-      border-top: 1px solid #333;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>❌ Tic Tac Toe ⭕</h1>
@@ -148,7 +68,6 @@
         [0, 4, 8],
         [2, 4, 6],
       ];
-
       return winPatterns.some(pattern => {
         const [a, b, c] = pattern;
         return cells[a] && cells[a] === cells[b] && cells[a] === cells[c];
@@ -164,7 +83,6 @@
     }
 
     function goToDashboard() {
-      // ✅ Proper redirect to index.html
       window.location.href = "index.html";
     }
   </script>
