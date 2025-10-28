@@ -3,86 +3,159 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tic Tac Toe | Nitish’s Games</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <h1>❌ Tic Tac Toe ⭕</h1>
-
-  <div class="board" id="board"></div>
-  <div class="message" id="message">Player X's Turn</div>
-
-  <div class="controls">
-    <button onclick="resetGame()">Restart</button>
-    <button onclick="goToDashboard()">Return to Dashboard</button>
-  </div>
-
-  <footer>
-    Designed by Nitish Agrawal | All rights reserved
-  </footer>
-
-  <script>
-    const board = document.getElementById('board');
-    const message = document.getElementById('message');
-    let currentPlayer = 'X';
-    let gameActive = true;
-    let cells = Array(9).fill(null);
-
-    // Create board cells
-    for (let i = 0; i < 9; i++) {
-      const cell = document.createElement('div');
-      cell.classList.add('cell');
-      cell.addEventListener('click', () => handleCellClick(i));
-      board.appendChild(cell);
+  <title>Tic Tac Toe | Nitish's Game Zone</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #1a2a6c, #fdbb2d);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+      text-align: center;
     }
 
-    function handleCellClick(i) {
-      if (!gameActive || cells[i]) return;
-      cells[i] = currentPlayer;
-      board.children[i].textContent = currentPlayer;
+    h1 {
+      font-size: 2.5em;
+      text-shadow: 0 0 10px rgba(255,255,255,0.7);
+      margin-bottom: 25px;
+    }
 
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    .cell {
+      background: rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 10px rgba(255,255,255,0.2);
+    }
+
+    .cell:hover {
+      transform: scale(1.1);
+      background: rgba(255,255,255,0.3);
+    }
+
+    button {
+      padding: 12px 30px;
+      background: linear-gradient(45deg, #ff8a00, #e52e71);
+      border: none;
+      border-radius: 30px;
+      color: #fff;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      margin: 5px;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(255,255,255,0.5);
+    }
+
+    #status {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      font-weight: 500;
+    }
+
+    footer {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      font-size: 0.9em;
+      opacity: 0.8;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tic Tac Toe ❌⭕</h1>
+
+  <div id="status">Player X's turn</div>
+
+  <div class="board" id="board">
+    <div class="cell" onclick="makeMove(0)"></div>
+    <div class="cell" onclick="makeMove(1)"></div>
+    <div class="cell" onclick="makeMove(2)"></div>
+    <div class="cell" onclick="makeMove(3)"></div>
+    <div class="cell" onclick="makeMove(4)"></div>
+    <div class="cell" onclick="makeMove(5)"></div>
+    <div class="cell" onclick="makeMove(6)"></div>
+    <div class="cell" onclick="makeMove(7)"></div>
+    <div class="cell" onclick="makeMove(8)"></div>
+  </div>
+
+  <button onclick="resetGame()">🔄 Restart</button>
+  <button onclick="goBack()">🏠 Return to Dashboard</button>
+
+  <footer>Designed by Nitish Agrawal | All Rights Reserved © 2025</footer>
+
+  <script>
+    let currentPlayer = "X";
+    let board = ["", "", "", "", "", "", "", "", ""];
+    let gameActive = true;
+
+    const statusDisplay = document.getElementById("status");
+    const cells = document.querySelectorAll(".cell");
+
+    const winningCombinations = [
+      [0,1,2], [3,4,5], [6,7,8],
+      [0,3,6], [1,4,7], [2,5,8],
+      [0,4,8], [2,4,6]
+    ];
+
+    function makeMove(index) {
+      if (!gameActive || board[index] !== "") return;
+      board[index] = currentPlayer;
+      cells[index].innerText = currentPlayer;
       if (checkWinner()) {
-        message.textContent = `Player ${currentPlayer} Wins! 🎉`;
+        statusDisplay.textContent = `🎉 Player ${currentPlayer} Wins!`;
         gameActive = false;
         return;
       }
-
-      if (cells.every(cell => cell)) {
-        message.textContent = "It's a Draw! 🤝";
+      if (!board.includes("")) {
+        statusDisplay.textContent = "😐 It's a Draw!";
         gameActive = false;
         return;
       }
-
-      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-      message.textContent = `Player ${currentPlayer}'s Turn`;
+      currentPlayer = currentPlayer === "X" ? "O" : "X";
+      statusDisplay.textContent = `Player ${currentPlayer}'s turn`;
     }
 
     function checkWinner() {
-      const winPatterns = [
-        [0, 1, 2],
-        [3, 4, 5],
-        [6, 7, 8],
-        [0, 3, 6],
-        [1, 4, 7],
-        [2, 5, 8],
-        [0, 4, 8],
-        [2, 4, 6],
-      ];
-      return winPatterns.some(pattern => {
-        const [a, b, c] = pattern;
-        return cells[a] && cells[a] === cells[b] && cells[a] === cells[c];
+      return winningCombinations.some(combo => {
+        const [a, b, c] = combo;
+        return board[a] && board[a] === board[b] && board[a] === board[c];
       });
     }
 
     function resetGame() {
-      cells = Array(9).fill(null);
-      Array.from(board.children).forEach(cell => (cell.textContent = ''));
-      currentPlayer = 'X';
+      board = ["", "", "", "", "", "", "", "", ""];
+      currentPlayer = "X";
       gameActive = true;
-      message.textContent = "Player X's Turn";
+      statusDisplay.textContent = `Player X's turn`;
+      cells.forEach(cell => cell.innerText = "");
     }
 
-    function goToDashboard() {
+    function goBack() {
       window.location.href = "index.html";
     }
   </script>
