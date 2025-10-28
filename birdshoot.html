@@ -8,44 +8,42 @@
   body {
     margin: 0;
     overflow: hidden;
-    background: skyblue;
+    background: linear-gradient(to bottom, #87ceeb, #f0f8ff);
     font-family: Arial, sans-serif;
-    user-select: none;
   }
 
   canvas {
     display: block;
-    background: linear-gradient(to bottom, #87ceeb, #f0f8ff);
   }
 
   #scoreBoard {
     position: absolute;
     top: 10px;
     left: 10px;
-    color: #333;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 6px 14px;
+    border-radius: 8px;
     font-size: 22px;
     font-weight: bold;
-    background: rgba(255,255,255,0.8);
-    padding: 5px 12px;
-    border-radius: 8px;
+    color: #333;
   }
 
   #restartBtn {
     position: absolute;
     top: 60px;
     left: 10px;
-    font-size: 16px;
-    padding: 8px 14px;
-    background: #333;
+    background: #222;
     color: white;
     border: none;
     border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 16px;
     cursor: pointer;
     display: none;
   }
 
   #restartBtn:hover {
-    background: #555;
+    background: #444;
   }
 </style>
 </head>
@@ -66,42 +64,72 @@ let bullets = [];
 let score = 0;
 let gameOver = false;
 
-// Load bird image
 const birdImg = new Image();
 birdImg.src = "https://upload.wikimedia.org/wikipedia/commons/4/45/Cartoon_bird.svg";
 
-// Spawn new birds
+birdImg.onload = () => {
+  startGame();
+};
+
+function startGame() {
+  birds = [];
+  bullets = [];
+  score = 0;
+  gameOver = false;
+  document.getElementById("scoreBoard").innerText = "Score: 0";
+  document.getElementById("restartBtn").style.display = "none";
+
+  // Spawn birds regularly
+  setInterval(spawnBird, 800);
+  requestAnimationFrame(gameLoop);
+
+  // End game after 30 seconds
+  setTimeout(() => {
+    gameOver = true;
+    document.getElementById("restartBtn").style.display = "block";
+    alert("Game Over! Final Score: " + score);
+  }, 30000);
+}
+
 function spawnBird() {
-  const size = 50 + Math.random() * 30;
+  if (gameOver) return;
+  const size = 60 + Math.random() * 30;
   const y = Math.random() * (canvas.height - size);
-  const speed = 2 + Math.random() * 3;
+  const speed = 2 + Math.random() * 4;
   birds.push({ x: -size, y, size, speed });
 }
 
-// Update bird positions
 function updateBirds() {
   birds.forEach((b, i) => {
     b.x += b.speed;
-    if (b.x > canvas.width) {
+    if (b.x > canvas.width + b.size) {
       birds.splice(i, 1);
     }
   });
 }
 
-// Draw birds
 function drawBirds() {
   birds.forEach(b => {
     ctx.drawImage(birdImg, b.x, b.y, b.size, b.size);
   });
 }
 
-// Handle shooting
 canvas.addEventListener("click", e => {
   if (gameOver) return;
-  bullets.push({ x: e.clientX, y: e.clientY });
+  bullets.push({ x: e.clientX, y: e.clientY, timer: 8 });
 });
 
-// Check hits
+function drawBullets() {
+  ctx.fillStyle = "rgba(255,0,0,0.7)";
+  bullets.forEach(b => {
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, 10, 0, Math.PI * 2);
+    ctx.fill();
+    b.timer--;
+  });
+  bullets = bullets.filter(b => b.timer > 0);
+}
+
 function checkHits() {
   bullets.forEach((bullet, bi) => {
     birds.forEach((b, bi2) => {
@@ -120,48 +148,19 @@ function checkHits() {
   });
 }
 
-// Draw bullets (click effect)
-function drawBullets() {
-  ctx.fillStyle = "rgba(255,0,0,0.6)";
-  bullets.forEach(b => {
-    ctx.beginPath();
-    ctx.arc(b.x, b.y, 10, 0, Math.PI * 2);
-    ctx.fill();
-  });
-}
-
-// Main loop
 function gameLoop() {
   if (gameOver) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  updateBirds();
   drawBirds();
   drawBullets();
-  updateBirds();
   checkHits();
-
-  if (Math.random() < 0.02) spawnBird();
-
   requestAnimationFrame(gameLoop);
 }
 
-gameLoop();
-
 document.getElementById("restartBtn").onclick = () => {
-  birds = [];
-  bullets = [];
-  score = 0;
-  gameOver = false;
-  document.getElementById("scoreBoard").innerText = "Score: 0";
-  document.getElementById("restartBtn").style.display = "none";
-  gameLoop();
+  location.reload();
 };
-
-// Optional: Game over after time
-setTimeout(() => {
-  gameOver = true;
-  document.getElementById("restartBtn").style.display = "block";
-  alert("Game Over! Final Score: " + score);
-}, 30000);
 </script>
 </body>
 </html>
