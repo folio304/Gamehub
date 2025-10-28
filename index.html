@@ -1,39 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nitish’s Game Dashboard</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nitish's Game Zone 🎮</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #1e90ff, #ff6ec4);
+      font-family: 'Poppins', sans-serif;
+      color: #fff;
+      text-align: center;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      font-weight: 700;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+    }
+
+    select {
+      width: 250px;
+      padding: 12px 15px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1.2em;
+      outline: none;
+      background: #fff;
+      color: #333;
+      transition: transform 0.2s ease;
+    }
+
+    select:hover {
+      transform: scale(1.05);
+    }
+
+    button {
+      margin-top: 25px;
+      padding: 12px 30px;
+      background: linear-gradient(45deg, #ff8a00, #e52e71);
+      border: none;
+      border-radius: 30px;
+      color: #fff;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0px 5px 15px rgba(0,0,0,0.2);
+    }
+
+    button:hover {
+      transform: scale(1.1);
+      box-shadow: 0px 5px 25px rgba(255,255,255,0.4);
+    }
+
+    footer {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      text-align: center;
+      color: #fff;
+      font-size: 0.9em;
+      opacity: 0.8;
+    }
+  </style>
 </head>
 <body>
-  <header>🎮 Nitish’s Game Dashboard</header>
-
-  <div class="container">
-    <label for="gameSelect">Select a Game:</label>
+  <div>
+    <h1>🎮 Welcome to Nitish's Game Zone</h1>
     <select id="gameSelect">
-      <option value="">-- Choose Game --</option>
+      <option value="">-- Choose a Game --</option>
       <option value="tic-tac-toe.html">Tic Tac Toe</option>
-      <option value="snake.html">Snake</option>
-      <option value="rps.html">Rock Paper Scissors</option>
+      <option value="snake.html">Snake (coming soon)</option>
+      <option value="rock-paper-scissors.html">Rock Paper Scissors (coming soon)</option>
     </select>
-
-    <button id="playButton">Play</button>
+    <br>
+    <button onclick="playGame()">Play ▶️</button>
   </div>
 
   <footer>
-    Designed by Nitish Agrawal | All rights reserved
+    Designed by Nitish Agrawal | All Rights Reserved © 2025
   </footer>
 
   <script>
-    document.getElementById('playButton').addEventListener('click', () => {
-      const game = document.getElementById('gameSelect').value;
+    function playGame() {
+      const game = document.getElementById("gameSelect").value;
       if (game) {
         window.location.href = game;
       } else {
-        alert('Please select a game first!');
+        alert("Please select a game to play!");
       }
-    });
+    }
   </script>
 </body>
 </html>
