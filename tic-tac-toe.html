@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic Tac Toe | Nitish’s Game Zone</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #1e1e2f, #2b5876);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+
+    .game-board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .cell:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .controls {
+      margin-bottom: 25px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      background-color: #00c6ff;
+      border: none;
+      color: white;
+      font-weight: bold;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0096d1;
+    }
+
+    #status {
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+
+    footer {
+      margin-top: auto;
+      background: rgba(255, 255, 255, 0.05);
+      width: 100%;
+      text-align: center;
+      padding: 10px 0;
+      font-size: 0.9rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+    }
+
+    @media (max-width: 500px) {
+      .game-board {
+        grid-template-columns: repeat(3, 80px);
+        grid-template-rows: repeat(3, 80px);
+        gap: 8px;
+      }
+      .cell {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🧩 Tic Tac Toe</h1>
+
+  <div class="game-board" id="board">
+    <div class="cell" data-index="0"></div>
+    <div class="cell" data-index="1"></div>
+    <div class="cell" data-index="2"></div>
+    <div class="cell" data-index="3"></div>
+    <div class="cell" data-index="4"></div>
+    <div class="cell" data-index="5"></div>
+    <div class="cell" data-index="6"></div>
+    <div class="cell" data-index="7"></div>
+    <div class="cell" data-index="8"></div>
+  </div>
+
+  <div id="status">Player X’s Turn</div>
+
+  <div class="controls">
+    <button id="restartBtn">Restart</button>
+    <button onclick="window.location.href='../index.html'">Back to Dashboard</button>
+  </div>
+
+  <footer>
+    © Designed by <strong>Nitish Agrawal</strong> — All Rights Reserved
+  </footer>
+
+  <script>
+    const board = document.getElementById('board');
+    const cells = document.querySelectorAll('.cell');
+    const statusText = document.getElementById('status');
+    const restartBtn = document.getElementById('restartBtn');
+    let currentPlayer = 'X';
+    let boardState = ["", "", "", "", "", "", "", "", ""];
+    let running = true;
+
+    const winPatterns = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6]
+    ];
+
+    function handleClick(e) {
+      const index = e.target.getAttribute('data-index');
+      if (boardState[index] !== "" || !running) return;
+
+      boardState[index] = currentPlayer;
+      e.target.textContent = currentPlayer;
+      checkWinner();
+    }
+
+    function checkWinner() {
+      let winner = null;
+
+      for (let pattern of winPatterns) {
+        const [a, b, c] = pattern;
+        if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+          winner = boardState[a];
+          break;
+        }
+      }
+
+      if (winner) {
+        statusText.textContent = `🎉 Player ${winner} Wins!`;
+        running = false;
+      } else if (!boardState.includes("")) {
+        statusText.textContent = "It's a Draw!";
+        running = false;
+      } else {
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        statusText.textContent = `Player ${currentPlayer}’s Turn`;
+      }
+    }
+
+    function restartGame() {
+      boardState = ["", "", "", "", "", "", "", "", ""];
+      currentPlayer = "X";
+      running = true;
+      cells.forEach(cell => cell.textContent = "");
+      statusText.textContent = "Player X’s Turn";
+    }
+
+    cells.forEach(cell => cell.addEventListener('click', handleClick));
+    restartBtn.addEventListener('click', restartGame);
+  </script>
+
+</body>
+</html>
