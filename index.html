@@ -3,118 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nitish's Game Zone 🎮</title>
+  <title>Game Dashboard</title>
   <link rel="stylesheet" href="style.css">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #1a2a6c, #fdbb2d);
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: #fff;
-      text-align: center;
-      overflow: hidden;
-    }
-
-    h1 {
-      font-size: 3em;
-      margin-bottom: 25px;
-      text-shadow: 0 0 15px rgba(255,255,255,0.6);
-      animation: glow 2s ease-in-out infinite alternate;
-    }
-
-    @keyframes glow {
-      from { text-shadow: 0 0 10px #ff8a00, 0 0 20px #ff8a00; }
-      to { text-shadow: 0 0 20px #e52e71, 0 0 30px #e52e71; }
-    }
-
-    .launcher {
-      background: rgba(255,255,255,0.1);
-      padding: 40px;
-      border-radius: 25px;
-      box-shadow: 0 0 30px rgba(255,255,255,0.1);
-      backdrop-filter: blur(6px);
-      transition: transform 0.3s ease;
-    }
-
-    .launcher:hover {
-      transform: scale(1.03);
-    }
-
-    select {
-      width: 280px;
-      padding: 15px;
-      font-size: 1.2em;
-      border-radius: 12px;
-      border: none;
-      outline: none;
-      background: #fff;
-      color: #333;
-      margin-bottom: 25px;
-      transition: all 0.2s ease;
-    }
-
-    select:hover {
-      transform: scale(1.05);
-    }
-
-    button {
-      padding: 14px 35px;
-      font-size: 1.2em;
-      color: #fff;
-      background: linear-gradient(45deg, #ff8a00, #e52e71);
-      border: none;
-      border-radius: 30px;
-      cursor: pointer;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
-      transition: all 0.3s ease;
-    }
-
-    button:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 25px rgba(255,255,255,0.5);
-    }
-
-    footer {
-      position: fixed;
-      bottom: 10px;
-      width: 100%;
-      text-align: center;
-      font-size: 0.9em;
-      opacity: 0.8;
-      color: #fff;
-    }
-  </style>
 </head>
 <body>
-  <h1>🎮 Nattu's Game Zone</h1>
+  <div class="dashboard-container">
+    <h1>🎮 Game Dashboard</h1>
 
-  <div class="launcher">
-    <select id="gameSelect">
-      <option value="">-- Choose a Game --</option>
-      <option value="tic-tac-toe.html">Tic Tac Toe</option>
-      <option value="snake.html">Snake (coming soon)</option>
-      <option value="rock-paper-scissors.html">Rock Paper Scissors (coming soon)</option>
-    </select>
-    <br>
-    <button onclick="playGame()">Play ▶️</button>
+    <div class="game-selector">
+      <label for="game-select">Choose a Game:</label>
+      <select id="game-select">
+        <option value="">-- Select a Game --</option>
+        <option value="tictactoe.html">Tic Tac Toe</option>
+        <option value="flipcoin.html">Flip the Coin</option>
+      </select>
+      <button id="play-button">Play</button>
+    </div>
   </div>
 
-  <footer>Designed by Nitish Agrawal | All Rights Reserved © 2025</footer>
+  <footer>
+    Designed by Nitish Agrawal | All Rights Reserved © 2025
+  </footer>
 
   <script>
-    function playGame() {
-      const game = document.getElementById("gameSelect").value;
-      if (game) {
-        window.location.href = game;
+    document.getElementById('play-button').addEventListener('click', () => {
+      const selectedGame = document.getElementById('game-select').value;
+      if (selectedGame) {
+        window.location.href = selectedGame;
       } else {
-        alert("Please select a game to play!");
+        alert("Please select a game first!");
       }
-    }
+    });
   </script>
 </body>
 </html>
