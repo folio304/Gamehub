@@ -1,181 +1,164 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Bubble Pop Game</title>
-<style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: radial-gradient(circle at bottom, #a1c4fd, #c2e9fb);
-    font-family: "Poppins", sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-    text-align: center;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bubble Pop Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: radial-gradient(circle at center, #d1f3ff, #83d8f7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      font-family: "Poppins", sans-serif;
+    }
 
-  h1 {
-    position: absolute;
-    top: 10px;
-    font-size: 2rem;
-    color: white;
-    text-shadow: 0 0 10px rgba(0,0,0,0.5);
-  }
+    h1 {
+      margin-top: 20px;
+      color: #0277bd;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      font-size: 2.2em;
+      animation: floatTitle 3s ease-in-out infinite;
+    }
 
-  #scoreBoard {
-    position: absolute;
-    top: 60px;
-    font-size: 1.5rem;
-    color: #fff;
-    text-shadow: 0 0 5px rgba(0,0,0,0.5);
-  }
+    @keyframes floatTitle {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
 
-  canvas {
-    display: block;
-  }
+    canvas {
+      background: rgba(255, 255, 255, 0.5);
+      border-radius: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      margin-top: 15px;
+    }
 
-  #returnBtn {
-    position: absolute;
-    bottom: 60px;
-    padding: 10px 20px;
-    background: #222;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-  }
+    footer {
+      position: absolute;
+      bottom: 10px;
+      text-align: center;
+      width: 100%;
+      color: #01579b;
+      font-size: 14px;
+      font-weight: 500;
+    }
 
-  #returnBtn:hover {
-    background: #444;
-  }
+    button {
+      margin-top: 10px;
+      background: #0288d1;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: 0.3s;
+    }
 
-  footer {
-    position: fixed;
-    bottom: 10px;
-    text-align: center;
-    font-size: 14px;
-    color: white;
-    width: 100%;
-    text-shadow: 0 0 5px rgba(0,0,0,0.5);
-  }
-</style>
+    button:hover {
+      background: #01579b;
+      transform: scale(1.05);
+    }
+  </style>
 </head>
 <body>
-  <h1>🎈 Bubble Pop Game</h1>
-  <div id="scoreBoard">Score: 0</div>
-  <canvas id="gameCanvas"></canvas>
-  <button id="returnBtn">Return to Dashboard</button>
-  <footer>Designed by Nitish Agrawal — All Rights Reserved</footer>
+  <h1>🎈 Bubble Pop Game 🎈</h1>
+  <canvas id="bubbleCanvas" width="360" height="500"></canvas>
+  <button onclick="window.location.href='index.html'">Return to Dashboard</button>
 
-<script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+  <footer>Designed by Nitish Agrawal | All Rights Reserved</footer>
 
-let bubbles = [];
-let score = 0;
-let animationFrame;
+  <script>
+    const canvas = document.getElementById("bubbleCanvas");
+    const ctx = canvas.getContext("2d");
 
-function randomColor() {
-  const colors = ["#ff6b6b", "#feca57", "#48dbfb", "#1dd1a1", "#5f27cd"];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
+    let bubbles = [];
+    let score = 0;
 
-class Bubble {
-  constructor(x, y, r, color, speed) {
-    this.x = x;
-    this.y = y;
-    this.r = r;
-    this.color = color;
-    this.speed = speed;
-    this.opacity = 1;
-  }
-
-  draw() {
-    ctx.beginPath();
-    const gradient = ctx.createRadialGradient(this.x, this.y, this.r*0.3, this.x, this.y, this.r);
-    gradient.addColorStop(0, "#fff");
-    gradient.addColorStop(1, this.color);
-    ctx.fillStyle = gradient;
-    ctx.globalAlpha = this.opacity;
-    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.globalAlpha = 1;
-  }
-
-  update() {
-    this.y -= this.speed;
-    this.opacity -= 0.002;
-  }
-}
-
-function spawnBubble() {
-  const x = Math.random() * canvas.width;
-  const y = canvas.height + 50;
-  const r = 20 + Math.random() * 40;
-  const color = randomColor();
-  const speed = 1 + Math.random() * 3;
-  bubbles.push(new Bubble(x, y, r, color, speed));
-}
-
-function handleBubbles() {
-  for (let i = 0; i < bubbles.length; i++) {
-    bubbles[i].update();
-    bubbles[i].draw();
-    if (bubbles[i].y + bubbles[i].r < 0 || bubbles[i].opacity <= 0) {
-      bubbles.splice(i, 1);
-      i--;
-    }
-  }
-}
-
-function animate() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  handleBubbles();
-  animationFrame = requestAnimationFrame(animate);
-}
-
-canvas.addEventListener("click", e => {
-  for (let i = 0; i < bubbles.length; i++) {
-    const b = bubbles[i];
-    const dist = Math.hypot(e.clientX - b.x, e.clientY - b.y);
-    if (dist < b.r) {
-      // pop animation
-      for (let j = 0; j < 6; j++) {
-        setTimeout(() => {
-          ctx.beginPath();
-          ctx.arc(b.x, b.y, b.r * (1 + j * 0.2), 0, Math.PI * 2);
-          ctx.strokeStyle = b.color;
-          ctx.globalAlpha = 1 - j * 0.15;
-          ctx.lineWidth = 3;
-          ctx.stroke();
-        }, j * 40);
+    class Bubble {
+      constructor(x, y, r, speed, color) {
+        this.x = x;
+        this.y = y;
+        this.r = r;
+        this.speed = speed;
+        this.color = color;
+        this.popped = false;
       }
-      bubbles.splice(i, 1);
-      score++;
-      document.getElementById("scoreBoard").innerText = "Score: " + score;
-      break;
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        const gradient = ctx.createRadialGradient(
+          this.x - this.r / 3, this.y - this.r / 3, this.r / 6,
+          this.x, this.y, this.r
+        );
+        gradient.addColorStop(0, "white");
+        gradient.addColorStop(1, this.color);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      update() {
+        this.y -= this.speed;
+        if (this.y + this.r < 0) {
+          this.y = canvas.height + this.r;
+          this.x = Math.random() * canvas.width;
+        }
+        this.draw();
+      }
     }
-  }
-});
 
-setInterval(spawnBubble, 500);
-animate();
+    function createBubbles() {
+      const colors = ["#ff8a80", "#82b1ff", "#80d8ff", "#a7ffeb", "#ccff90"];
+      for (let i = 0; i < 25; i++) {
+        const r = 15 + Math.random() * 15;
+        const x = Math.random() * (canvas.width - r * 2) + r;
+        const y = Math.random() * canvas.height;
+        const speed = 1 + Math.random() * 2;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        bubbles.push(new Bubble(x, y, r, speed, color));
+      }
+    }
 
-document.getElementById("returnBtn").onclick = () => {
-  window.location.href = "index.html";
-};
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      bubbles.forEach((bubble) => bubble.update());
+      requestAnimationFrame(animate);
+    }
 
-window.addEventListener("resize", () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-});
-</script>
+    function popBubble(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      bubbles.forEach((bubble) => {
+        const dx = x - bubble.x;
+        const dy = y - bubble.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < bubble.r) {
+          bubble.y = canvas.height + bubble.r;
+          bubble.x = Math.random() * canvas.width;
+          score++;
+        }
+      });
+    }
+
+    canvas.addEventListener("click", popBubble);
+    canvas.addEventListener("touchstart", (e) => {
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      popBubble({ clientX: touch.clientX, clientY: touch.clientY });
+    });
+
+    createBubbles();
+    animate();
+  </script>
 </body>
 </html>
