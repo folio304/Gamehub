@@ -1,122 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flip The Coin | Nitish's Game Zone</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flip the Coin</title>
   <style>
     body {
       margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #1a2a6c, #fdbb2d);
-      height: 100vh;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #42275a, #734b6d);
+      color: white;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      color: #fff;
-      text-align: center;
-      overflow: hidden;
+      justify-content: center;
+      height: 100vh;
     }
 
     h1 {
-      font-size: 2.5em;
-      text-shadow: 0 0 10px rgba(255,255,255,0.7);
-      margin-bottom: 25px;
+      margin-bottom: 30px;
     }
 
     .coin {
       width: 150px;
       height: 150px;
-      background: radial-gradient(circle, #fddb92, #d1a000);
       border-radius: 50%;
-      box-shadow: 0 0 20px rgba(255,255,255,0.3);
+      background: radial-gradient(circle, gold 60%, #b8860b);
       display: flex;
-      justify-content: center;
       align-items: center;
-      font-size: 1.8em;
-      font-weight: bold;
+      justify-content: center;
+      font-size: 2em;
       color: #333;
-      transform-style: preserve-3d;
-      transition: transform 1s ease;
-      cursor: pointer;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+      transition: transform 1s ease-in-out;
     }
 
     .flip {
-      animation: flipCoin 1s ease forwards;
-    }
-
-    @keyframes flipCoin {
-      0% { transform: rotateY(0); }
-      50% { transform: rotateY(180deg); }
-      100% { transform: rotateY(360deg); }
-    }
-
-    #result {
-      font-size: 1.4em;
-      margin-top: 20px;
-      min-height: 25px;
+      transform: rotateY(720deg);
     }
 
     button {
-      margin-top: 25px;
-      padding: 12px 30px;
-      background: linear-gradient(45deg, #ff8a00, #e52e71);
+      margin-top: 30px;
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      color: white;
       border: none;
-      border-radius: 30px;
-      color: #fff;
-      font-size: 1.1em;
+      padding: 12px 25px;
+      border-radius: 10px;
+      font-size: 1em;
       cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-      margin: 5px;
+      transition: transform 0.2s;
     }
 
     button:hover {
       transform: scale(1.05);
-      box-shadow: 0 0 20px rgba(255,255,255,0.5);
     }
 
     footer {
       position: fixed;
-      bottom: 10px;
+      bottom: 0;
       width: 100%;
       text-align: center;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      color: #ccc;
       font-size: 0.9em;
-      opacity: 0.8;
-      color: #fff;
     }
   </style>
 </head>
 <body>
-  <h1>🪙 Flip The Coin</h1>
+  <h1>🪙 Flip the Coin</h1>
+  <div class="coin" id="coin">?</div>
 
-  <div class="coin" id="coin">TAP</div>
-  <div id="result"></div>
+  <button onclick="flipCoin()">Flip Coin</button>
+  <button onclick="window.location.href='dashboard.html'">Return to Dashboard</button>
 
-  <button onclick="flipCoin()">🔁 Flip Again</button>
-  <button onclick="goBack()">🏠 Return to Dashboard</button>
-
-  <footer>Designed by Nitish Agrawal | All Rights Reserved © 2025</footer>
+  <footer>
+    Designed by Nitish Agrawal | All Rights Reserved © 2025
+  </footer>
 
   <script>
     const coin = document.getElementById("coin");
-    const result = document.getElementById("result");
-
     function flipCoin() {
       coin.classList.add("flip");
-      result.textContent = "";
       setTimeout(() => {
+        const result = Math.random() < 0.5 ? "Heads" : "Tails";
+        coin.textContent = result;
         coin.classList.remove("flip");
-        const side = Math.random() < 0.5 ? "Heads" : "Tails";
-        result.textContent = `🎉 It's ${side}!`;
-        coin.textContent = side;
       }, 1000);
-    }
-
-    function goBack() {
-      window.location.href = "index.html";
     }
   </script>
 </body>
