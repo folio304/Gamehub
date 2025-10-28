@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bubble Pop Game</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: radial-gradient(circle at bottom, #a1c4fd, #c2e9fb);
+    font-family: "Poppins", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    text-align: center;
+  }
+
+  h1 {
+    position: absolute;
+    top: 10px;
+    font-size: 2rem;
+    color: white;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+  }
+
+  #scoreBoard {
+    position: absolute;
+    top: 60px;
+    font-size: 1.5rem;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+  }
+
+  canvas {
+    display: block;
+  }
+
+  #returnBtn {
+    position: absolute;
+    bottom: 60px;
+    padding: 10px 20px;
+    background: #222;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  #returnBtn:hover {
+    background: #444;
+  }
+
+  footer {
+    position: fixed;
+    bottom: 10px;
+    text-align: center;
+    font-size: 14px;
+    color: white;
+    width: 100%;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+  }
+</style>
+</head>
+<body>
+  <h1>🎈 Bubble Pop Game</h1>
+  <div id="scoreBoard">Score: 0</div>
+  <canvas id="gameCanvas"></canvas>
+  <button id="returnBtn">Return to Dashboard</button>
+  <footer>Designed by Nitish Agrawal — All Rights Reserved</footer>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let bubbles = [];
+let score = 0;
+let animationFrame;
+
+function randomColor() {
+  const colors = ["#ff6b6b", "#feca57", "#48dbfb", "#1dd1a1", "#5f27cd"];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+class Bubble {
+  constructor(x, y, r, color, speed) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.color = color;
+    this.speed = speed;
+    this.opacity = 1;
+  }
+
+  draw() {
+    ctx.beginPath();
+    const gradient = ctx.createRadialGradient(this.x, this.y, this.r*0.3, this.x, this.y, this.r);
+    gradient.addColorStop(0, "#fff");
+    gradient.addColorStop(1, this.color);
+    ctx.fillStyle = gradient;
+    ctx.globalAlpha = this.opacity;
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  update() {
+    this.y -= this.speed;
+    this.opacity -= 0.002;
+  }
+}
+
+function spawnBubble() {
+  const x = Math.random() * canvas.width;
+  const y = canvas.height + 50;
+  const r = 20 + Math.random() * 40;
+  const color = randomColor();
+  const speed = 1 + Math.random() * 3;
+  bubbles.push(new Bubble(x, y, r, color, speed));
+}
+
+function handleBubbles() {
+  for (let i = 0; i < bubbles.length; i++) {
+    bubbles[i].update();
+    bubbles[i].draw();
+    if (bubbles[i].y + bubbles[i].r < 0 || bubbles[i].opacity <= 0) {
+      bubbles.splice(i, 1);
+      i--;
+    }
+  }
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  handleBubbles();
+  animationFrame = requestAnimationFrame(animate);
+}
+
+canvas.addEventListener("click", e => {
+  for (let i = 0; i < bubbles.length; i++) {
+    const b = bubbles[i];
+    const dist = Math.hypot(e.clientX - b.x, e.clientY - b.y);
+    if (dist < b.r) {
+      // pop animation
+      for (let j = 0; j < 6; j++) {
+        setTimeout(() => {
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.r * (1 + j * 0.2), 0, Math.PI * 2);
+          ctx.strokeStyle = b.color;
+          ctx.globalAlpha = 1 - j * 0.15;
+          ctx.lineWidth = 3;
+          ctx.stroke();
+        }, j * 40);
+      }
+      bubbles.splice(i, 1);
+      score++;
+      document.getElementById("scoreBoard").innerText = "Score: " + score;
+      break;
+    }
+  }
+});
+
+setInterval(spawnBubble, 500);
+animate();
+
+document.getElementById("returnBtn").onclick = () => {
+  window.location.href = "index.html";
+};
+
+window.addEventListener("resize", () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+</body>
+</html>
