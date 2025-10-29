@@ -29,24 +29,51 @@
       height: 100vh;
       background: linear-gradient(to bottom, #1e1e1e, #000);
       overflow: hidden;
-      border-top: 3px solid #444;
-      border-bottom: 3px solid #444;
     }
 
-    /* Road lines */
-    .road-line {
+    /* Buttons + Score area */
+    #topBar {
       position: absolute;
-      width: 10px;
-      height: 100px;
-      background: rgba(255, 255, 255, 0.8);
-      left: 50%;
-      transform: translateX(-50%);
-      animation: moveLines 1s linear infinite;
+      top: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 10;
     }
 
-    @keyframes moveLines {
-      from { top: -100px; }
-      to { top: 100vh; }
+    #score {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 20px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      color: #fff;
+      transition: 0.3s;
+    }
+
+    .restart-btn {
+      background: linear-gradient(45deg, #ff4444, #ff7777);
+      box-shadow: 0 0 10px rgba(255, 100, 100, 0.4);
+    }
+
+    .dashboard-btn {
+      background: linear-gradient(45deg, #4444ff, #7777ff);
+      box-shadow: 0 0 10px rgba(100, 100, 255, 0.4);
+    }
+
+    .restart-btn:hover,
+    .dashboard-btn:hover {
+      transform: scale(1.05);
     }
 
     .car {
@@ -69,20 +96,9 @@
       box-shadow: 0 0 15px rgba(255, 255, 0, 0.6);
     }
 
-    #score {
-      position: absolute;
-      top: 15px;
-      left: 15px;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 10px 18px;
-      border-radius: 8px;
-      font-size: 20px;
-      box-shadow: 0 0 10px rgba(255,255,255,0.3);
-    }
-
     #gameOver {
       position: absolute;
-      top: 40%;
+      top: 45%;
       width: 100%;
       text-align: center;
       font-size: 40px;
@@ -90,38 +106,12 @@
       color: #fff;
       text-shadow: 0 0 15px #ff3333;
       animation: fadeIn 1s ease-in-out;
+      z-index: 5;
     }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: scale(0.9); }
       to { opacity: 1; transform: scale(1); }
-    }
-
-    .btn {
-      display: inline-block;
-      margin: 15px;
-      padding: 12px 25px;
-      font-size: 18px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-      color: #fff;
-    }
-
-    .restart-btn {
-      background: linear-gradient(45deg, #ff4444, #ff7777);
-      box-shadow: 0 0 15px rgba(255, 100, 100, 0.5);
-    }
-    .restart-btn:hover { transform: scale(1.05); }
-
-    .dashboard-btn {
-      position: absolute;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(45deg, #4444ff, #7777ff);
-      box-shadow: 0 0 15px rgba(100, 100, 255, 0.5);
     }
 
     footer {
@@ -139,16 +129,15 @@
 </head>
 <body>
   <div id="gameArea">
-    <div id="score">Score: 0</div>
-    <div id="gameOver">
-      GAME OVER
-      <div>
-        <button class="btn restart-btn" id="restartBtn">Restart</button>
-      </div>
+    <div id="topBar">
+      <button class="btn dashboard-btn" id="dashboardBtn">🏠 Dashboard</button>
+      <div id="score">Score: 0</div>
+      <button class="btn restart-btn" id="restartBtn">🔁 Restart</button>
     </div>
+
+    <div id="gameOver">GAME OVER</div>
     <div class="car" id="playerCar"></div>
-    <button class="btn dashboard-btn" id="dashboardBtn">🏠 Return to Dashboard</button>
-    <footer>© 2025 Nitish’s Game Zone</footer>
+    <footer>© 2025 Designed by Nitish Agrawal — All Rights Reserved</footer>
   </div>
 
   <script>
@@ -176,8 +165,7 @@
 
     restartBtn.addEventListener("click", restartGame);
     dashboardBtn.addEventListener("click", () => {
-      alert("Returning to Dashboard...");
-      window.location.href = "#"; // Replace with your dashboard link
+      window.location.href = "index.html"; // ✅ back to dashboard page
     });
 
     function moveCar(e) {
@@ -210,8 +198,6 @@
           enemies.splice(index, 1);
           score++;
           speed += 0.05;
-          if (score % 10 === 0)
-            enemy.style.background = `linear-gradient(to top, hsl(${Math.random() * 360}, 80%, 60%), hsl(${Math.random() * 360}, 80%, 70%))`;
         }
 
         if (isCollide(playerCar, enemy)) endGame();
