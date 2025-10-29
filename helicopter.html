@@ -3,373 +3,376 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Helicopter — Nitish's Game Zone</title>
+<title>Helicopter Game — Nitish's Game Zone</title>
 <style>
   :root{
-    --bg1: #021124;
-    --bg2: #04213a;
-    --accent: #00f0b6;
+    --bg1: #041426;
+    --bg2: #07293f;
+    --accent: #00e6a8;
     --muted: #9fb4c8;
   }
-  html,body{height:100%;margin:0;font-family:Poppins,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;color:#e6eef8;background:linear-gradient(180deg,var(--bg1),var(--bg2))}
-  .wrap{position:relative;height:100vh;width:100vw;overflow:hidden}
-  /* fixed top bar so it doesn't hide under mobile UI */
-  .topbar{
-    position:fixed;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:8px 14px;gap:10px;
-    backdrop-filter: blur(6px); background:linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.18)); z-index:60; box-shadow:0 6px 18px rgba(0,0,0,0.4)
+  html,body{height:100%;margin:0;font-family:Inter, Poppins, system-ui, sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#e6eef8}
+  /* fixed top bar so it's always visible */
+  .topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 60px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:8px 16px;
+    z-index:100;
+    backdrop-filter: blur(6px);
+    background: linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.12));
+    box-shadow: 0 6px 18px rgba(0,0,0,0.45);
   }
-  .score{font-weight:800;font-size:18px;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.04);color:var(--accent)}
+  .top-left{display:flex;gap:10px;align-items:center}
+  .score-box{background:rgba(255,255,255,0.04);padding:8px 12px;border-radius:10px;font-weight:800;color:var(--accent)}
   .controls{display:flex;gap:8px}
-  button{appearance:none;border:none;cursor:pointer;padding:8px 12px;border-radius:10px;font-weight:700;background:linear-gradient(90deg,#6a5cff,#9b7bff);color:white;box-shadow:0 8px 20px rgba(107,90,255,0.12)}
-  button.secondary{background:linear-gradient(90deg,#ff7a7a,#ffb27a);box-shadow:0 8px 20px rgba(255,122,122,0.08)}
-  /* canvas fills area below topbar */
-  #gameArea{position:absolute;left:0;right:0;top:56px;bottom:0;display:block;z-index:1}
-  canvas{width:100%;height:100%;display:block}
-  /* helicopter overlay (SVG) */
-  .helicopter-ui{position:absolute;z-index:30;pointer-events:none;left:18px;top:calc(56px + 18px)} 
-  /* overlay on gameover */
-  .overlay{position:absolute;left:0;right:0;top:56px;bottom:0;display:flex;align-items:center;justify-content:center;z-index:80;pointer-events:none}
-  .panel{pointer-events:auto;background:linear-gradient(180deg,#fff,#f4f6ff);color:#0b1220;padding:18px;border-radius:14px;min-width:260px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.4)}
-  .panel .big{font-size:28px;font-weight:900;color:#0b1220}
-  .panel p{margin:8px 0;color:#294153}
-  .small{font-size:13px;color:#5f7180}
-  footer{position:fixed;left:0;right:0;bottom:6px;text-align:center;color:var(--muted);z-index:60}
-  /* mobile hint */
-  .hint{position:fixed;left:50%;transform:translateX(-50%);bottom:72px;background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:999px;color:var(--muted);z-index:55}
-  @media (max-width:520px){ .helicopter-ui{left:10px;top:66px} .panel{min-width:200px} }
+  .btn{appearance:none;border:none;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700;background:linear-gradient(90deg,#6a5cff,#9b7bff);color:#fff}
+  .btn.secondary{background:linear-gradient(90deg,#ff7a7a,#ffb27a)}
+  /* game area under topbar */
+  #area { position: absolute; left:0; right:0; top:60px; bottom:0; overflow:hidden; }
+  canvas { display:block; width:100%; height:100%; }
+  /* overlay */
+  .overlay { position:absolute; inset:60px 0 0 0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:120; }
+  .panel { pointer-events:auto; background:#ffffff; color:#0b1220; padding:18px; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,0.4); text-align:center; min-width:260px; }
+  .panel .big { font-size:28px; font-weight:900; margin:6px 0; }
+  .muted { color:#567; font-size:14px; margin-top:8px; }
+  footer { position:fixed; left:0; right:0; bottom:6px; text-align:center; color:var(--muted); z-index:100; font-weight:600 }
+  .hint { position:fixed; left:50%; transform:translateX(-50%); bottom:80px; background:rgba(255,255,255,0.02); padding:8px 12px; border-radius:999px; color:var(--muted); z-index:90 }
+  @media (max-width:520px){ .panel{min-width:200px} .topbar{height:56px;padding:6px 10px} #area{top:56px} }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="topbar" role="toolbar" aria-label="Game controls">
-      <div class="left">
-        <div class="score" id="scoreDisplay">Score: 0</div>
-      </div>
-      <div class="controls">
-        <button id="pauseBtn" class="secondary">Pause</button>
-        <button id="restartBtn">Restart</button>
-        <button id="homeBtn" class="secondary">Return to Dashboard</button>
-      </div>
+  <div class="topbar" role="toolbar" aria-label="Game controls">
+    <div class="top-left">
+      <div class="score-box" id="scoreBox">Score: 0</div>
+      <div style="color:var(--muted);padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.02)">High: <span id="highBox">0</span></div>
     </div>
-
-    <div id="gameArea">
-      <canvas id="gameCanvas" aria-label="Helicopter game canvas"></canvas>
-
-      <!-- small helicopter icon as UI (purely decorative) -->
-      <div class="helicopter-ui" aria-hidden="true">
-        <svg width="80" height="38" viewBox="0 0 160 76" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="0" y="16" width="160" height="36" rx="18" fill="rgba(255,255,255,0.06)"/>
-          <rect x="12" y="4" width="104" height="20" rx="8" fill="#00f0b6"/>
-          <path d="M122 8 L150 0" stroke="#fff" stroke-linecap="round" stroke-width="4" opacity="0.85"/>
-        </svg>
-      </div>
-
-      <div class="overlay" id="overlay" style="display:none">
-        <div class="panel" id="panel">
-          <div class="big" id="gameOverTitle">Game Over</div>
-          <p class="small" id="gameMsg">You crashed — score</p>
-          <div class="big" id="finalScore">0</div>
-          <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
-            <button id="tryAgain">Play Again</button>
-            <button id="toHome" class="secondary">Dashboard</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="hint" id="hint">Hold screen (touch/press space) to rise</div>
-
+    <div class="controls">
+      <button class="btn secondary" id="pauseBtn">Pause</button>
+      <button class="btn" id="restartBtn">Restart</button>
+      <button class="btn secondary" id="homeBtn">Return to Dashboard</button>
     </div>
-
-    <footer>Designed by Nitish Agrawal | All rights reserved © 2025</footer>
   </div>
 
+  <div id="area">
+    <canvas id="c"></canvas>
+    <div class="overlay" id="overlay" style="display:none">
+      <div class="panel" role="dialog" aria-modal="true">
+        <div style="font-size:20px;font-weight:800">Game Over</div>
+        <div class="muted" id="reasonText">You crashed</div>
+        <div class="big" id="finalScore">0</div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:12px">
+          <button class="btn" id="againBtn">Play Again</button>
+          <button class="btn secondary" id="overlayHome">Dashboard</button>
+        </div>
+      </div>
+    </div>
+    <div class="hint">Hold anywhere (touch/press Space) to rise</div>
+  </div>
+
+  <footer>Designed by Nitish Agrawal | All rights reserved © 2025</footer>
+
 <script>
-/* Helicopter Game
- Controls: hold/touch/space to rise; release to fall
- Canvas-based game: helicopter with gravity, moving pillar obstacles (gaps) from right to left
- Score increments each passed obstacle.
+/* Clean, rewritten Helicopter Game
+ - Canvas fills #area
+ - Fixed topbar reserved area (60px)
+ - Controls: pointer/touch/space to apply lift; release to fall
+ - Obstacles spawn from right; pass between top/bottom columns with a gap
+ - Score increments when passing obstacles
+ - Pause, Restart, Return to Dashboard (index.html)
+ - High score saved in localStorage
 */
 
-const canvas = document.getElementById('gameCanvas');
+// ---- Canvas & sizing ----
+const TOPBAR_HEIGHT = document.querySelector('.topbar').offsetHeight || 60;
+const area = document.getElementById('area');
+const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
-const scoreDisplay = document.getElementById('scoreDisplay');
-const overlay = document.getElementById('overlay');
-const finalScore = document.getElementById('finalScore');
-const panelMsg = document.getElementById('gameMsg');
-const pauseBtn = document.getElementById('pauseBtn');
-const restartBtn = document.getElementById('restartBtn');
-const homeBtn = document.getElementById('homeBtn');
-const tryAgain = document.getElementById('tryAgain');
-const toHome = document.getElementById('toHome');
 
 let DPR = window.devicePixelRatio || 1;
-function resize(){
-  const topbarHeight = 56; // reserve topbar
-  const w = Math.max(320, window.innerWidth);
-  const h = Math.max(320, window.innerHeight - topbarHeight);
+function resizeCanvas(){
+  const w = Math.max(320, area.clientWidth);
+  const h = Math.max(320, area.clientHeight);
   canvas.style.width = w + 'px';
   canvas.style.height = h + 'px';
   canvas.width = Math.floor(w * DPR);
   canvas.height = Math.floor(h * DPR);
   ctx.setTransform(DPR,0,0,DPR,0,0);
-  gameWidth = w; gameHeight = h;
+  gameW = w; gameH = h;
 }
-window.addEventListener('resize', resize);
+window.addEventListener('resize', resizeCanvas);
 
-// game variables
-let gameWidth = 800, gameHeight = 400;
-resize();
+// ---- Game state ----
+let gameW = 800, gameH = 400;
+resizeCanvas();
 
 let running = true;
 let paused = false;
 let score = 0;
-let lastTimestamp = 0;
-let elapsed = 0;
+let highScore = Number(localStorage.getItem('helicopter_high')||0);
+document.getElementById('highBox').textContent = highScore;
 
-// helicopter
+const scoreBox = document.getElementById('scoreBox');
+const overlay = document.getElementById('overlay');
+const finalScore = document.getElementById('finalScore');
+const reasonText = document.getElementById('reasonText');
+
+// helicopter physics
 const heli = {
-  x: 120,
-  y: gameHeight/2,
+  x: Math.round(120),
+  y: Math.round(gameH/2),
+  width: 54,
+  height: 26,
   vy: 0,
-  width: 60,
-  height: 28,
-  thrust: -0.33,
-  gravity: 0.018,
+  gravity: 0.02,
+  lift: -0.36,
   maxVy: 8
 };
 
-// obstacles (columns with a gap)
-let obstacles = [];
+// obstacles
+let obstacles = []; // {x, width, topH, gapH, passed}
 let spawnTimer = 0;
-let spawnInterval = 1500; // ms
-let speed = 2.2; // base obstacle speed
+let spawnInterval = 1400; // ms
+let speed = 2.2;
 
-// control state
+// input state
 let pressing = false;
 
-// helper: create obstacle with a gap
-function createObstacle(){
-  const gapH = Math.max(96, 160 - Math.min(60, Math.floor(score/4)*6)); // gap shrinks slowly
-  const minTop = 32;
-  const maxTop = gameHeight - gapH - 120;
-  const topH = Math.floor(rand(minTop, Math.max(minTop, maxTop)));
-  obstacles.push({
-    x: gameWidth + 40,
-    width: 60,
-    topH,
-    gapH,
-    passed: false
-  });
-}
+// timing
+let lastTime = 0;
 
-// helpers
+// utility
 function rand(a,b){ return Math.random()*(b-a)+a; }
 
-// simple rectangle collision
-function collideRect(ax,ay,aw,ah,bx,by,bw,bh){
-  return !(ax+aw < bx || ax > bx+bw || ay+ah < by || ay > by+bh);
+// spawn obstacle
+function spawnObstacle(){
+  const gapBase = Math.max(90, 150 - Math.min(60, Math.floor(score/4)*6));
+  const gapH = gapBase; // gap height
+  const topMin = 32;
+  const topMax = Math.max(32, gameH - gapH - 120);
+  const topH = Math.floor(rand(topMin, topMax));
+  obstacles.push({ x: gameW + 20, width: 64, topH, gapH, passed:false });
 }
 
-// draw functions
+// collision helper
+function rectsOverlap(a,b){ return !(a.x + a.w < b.x || a.x > b.x + b.w || a.y + a.h < b.y || a.y > b.y + b.h); }
+
+// draw helpers
+function clear(){
+  ctx.clearRect(0,0,gameW,gameH);
+}
 function drawBackground(){
-  // gradient sky with subtle stars
-  const g = ctx.createLinearGradient(0,0,0,gameHeight);
+  // gradient sky
+  const g = ctx.createLinearGradient(0,0,0,gameH);
   g.addColorStop(0,'#021124'); g.addColorStop(1,'#04213a');
-  ctx.fillStyle = g; ctx.fillRect(0,0,gameWidth,gameHeight);
-  // faint horizon line
-  ctx.fillStyle = 'rgba(255,255,255,0.02)';
-  ctx.fillRect(0, gameHeight-2, gameWidth, 2);
-}
+  ctx.fillStyle = g; ctx.fillRect(0,0,gameW,gameH);
 
-function drawHelicopter(x,y, wobble=0){
-  // simple helicopter using paths
+  // faint moving stars / shapes
+  ctx.globalAlpha = 0.035;
+  for(let i=0;i<6;i++){
+    const cx = (i*97 + Date.now()/30) % gameW;
+    const cy = 30 + (i*50) % (gameH*0.7);
+    ctx.beginPath(); ctx.ellipse(cx, cy, 80, 40, 0, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+function drawHeli(x,y,rot=0){
   ctx.save();
   ctx.translate(x,y);
   // body
-  ctx.fillStyle = '#00f0b6';
+  ctx.fillStyle = '#00e6a8';
   roundRect(ctx, -heli.width/2, -heli.height/2, heli.width, heli.height, 6);
   ctx.fill();
   // window
   ctx.fillStyle = 'rgba(0,0,0,0.14)';
-  roundRect(ctx, -10, -10, 22, 16, 4);
+  roundRect(ctx, -10, -8, 22, 14, 4);
   ctx.fill();
   // tail
   ctx.fillStyle = '#00d29a';
-  ctx.fillRect(heli.width/2-6, -6, 26, 8);
-  // rotor
+  ctx.fillRect(heli.width/2 - 6, -5, 28, 10);
+  // rotor (simple)
   ctx.strokeStyle = 'rgba(255,255,255,0.5)';
   ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(-28, -heli.height/2 - 6 + Math.sin(wobble)*2);
-  ctx.lineTo(28, -heli.height/2 - 6 + Math.sin(wobble)*2);
-  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-30, -heli.height/2 -8 + Math.sin(rot)*2); ctx.lineTo(30, -heli.height/2 -8 + Math.sin(rot)*2); ctx.stroke();
   ctx.restore();
 }
-
-function roundRect(ctx, x, y, w, h, r){
-  ctx.beginPath();
-  ctx.moveTo(x+r,y);
-  ctx.arcTo(x+w,y,x+w,y+h,r);
-  ctx.arcTo(x+w,y+h,x,y+h,r);
-  ctx.arcTo(x,y+h,x,y,r);
-  ctx.arcTo(x,y,x+w,y,r);
-  ctx.closePath();
-}
+function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
 
 // draw obstacles
 function drawObstacles(){
   for(const ob of obstacles){
-    // left column
+    // top
     ctx.fillStyle = '#ff7a7a';
     ctx.fillRect(ob.x, 0, ob.width, ob.topH);
-    // right bottom column
+    // bottom
     ctx.fillStyle = '#ff9a7a';
-    ctx.fillRect(ob.x, ob.topH + ob.gapH, ob.width, gameHeight - (ob.topH+ob.gapH));
-    // decorative stroke
-    ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 2;
+    ctx.fillRect(ob.x, ob.topH + ob.gapH, ob.width, gameH - (ob.topH + ob.gapH));
+    // outline
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 2;
     ctx.strokeRect(ob.x, 0, ob.width, ob.topH);
-    ctx.strokeRect(ob.x, ob.topH + ob.gapH, ob.width, gameHeight - (ob.topH+ob.gapH));
+    ctx.strokeRect(ob.x, ob.topH + ob.gapH, ob.width, gameH - (ob.topH + ob.gapH));
   }
 }
 
-// physics & update
+// update physics
 function update(dt){
   if(!running || paused) return;
 
-  // controls: thrust applied if pressing
-  if(pressing) heli.vy += heli.thrust * dt;
-  // gravity
-  heli.vy += heli.gravity * dt;
+  // apply lift or gravity
+  if(pressing) heli.vy += heli.lift * (dt/16);
+  heli.vy += heli.gravity * (dt/16);
 
-  // clamp velocity
   heli.vy = Math.max(-heli.maxVy, Math.min(heli.maxVy, heli.vy));
 
-  // update position
-  heli.y += heli.vy * (dt);
+  heli.y += heli.vy * (dt/16);
 
-  // floor/ceiling check
-  if(heli.y - heli.height/2 < 0) { heli.y = heli.height/2; heli.vy = 0; }
-  if(heli.y + heli.height/2 > gameHeight) { heli.y = gameHeight - heli.height/2; gameOver('You hit the ground'); return; }
+  // bounds
+  if(heli.y - heli.height/2 < 0){ heli.y = heli.height/2; heli.vy = 0; }
+  if(heli.y + heli.height/2 > gameH){ heli.y = gameH - heli.height/2; gameOver('You hit the ground'); return; }
 
-  // obstacles
+  // move obstacles
   for(const ob of obstacles){
     ob.x -= speed * (dt/16);
-    // check collisions: top rect and bottom rect
-    const heliRect = {x: heli.x - heli.width/2, y: heli.y - heli.height/2, w: heli.width, h: heli.height};
-    // top rect
-    if(collideRect(heliRect.x, heliRect.y, heliRect.w, heliRect.h, ob.x, 0, ob.width, ob.topH)) { gameOver('You crashed'); return; }
-    // bottom rect
-    if(collideRect(heliRect.x, heliRect.y, heliRect.w, heliRect.h, ob.x, ob.topH + ob.gapH, ob.width, gameHeight - (ob.topH+ob.gapH))) { gameOver('You hit an obstacle'); return; }
-    // mark passed & increase score
+    // collision check with heli rectangle
+    const heliRect = { x: heli.x - heli.width/2, y: heli.y - heli.height/2, w: heli.width, h: heli.height };
+    const topRect = { x: ob.x, y: 0, w: ob.width, h: ob.topH };
+    const bottomRect = { x: ob.x, y: ob.topH + ob.gapH, w: ob.width, h: gameH - (ob.topH + ob.gapH) };
+    if(rectsOverlap(heliRect, topRect) || rectsOverlap(heliRect, bottomRect)){ gameOver('You crashed'); return; }
+    // score when passing
     if(!ob.passed && (ob.x + ob.width) < heli.x - heli.width/2){
-      ob.passed = true; score++; scoreDisplay.textContent = 'Score: ' + score;
-      // small speed bump every few points
-      if(score % 5 === 0) speed = Math.min(6.6, speed + 0.4);
+      ob.passed = true; score++; scoreBox.textContent = 'Score: ' + score;
+      // speed up
+      if(score % 5 === 0) speed = Math.min(7, speed + 0.35);
     }
   }
 
-  // remove off-screen obstacles
+  // remove offscreen
   obstacles = obstacles.filter(o => (o.x + o.width) > -40);
 
-  // spawn logic
+  // spawn
   spawnTimer += dt;
-  if(spawnTimer > spawnInterval){
+  if(spawnTimer >= spawnInterval){
     spawnTimer = 0;
-    createObstacle();
-    // slowly reduce spawn interval up to a point
-    spawnInterval = Math.max(900, 1500 - score * 20);
+    spawnObstacle();
+    spawnInterval = Math.max(900, 1400 - score * 18);
   }
 }
 
-// draw frame
-let wobble = 0;
+// render
+let wob = 0;
 function render(){
-  // clear & draw
+  clear();
   drawBackground();
   drawObstacles();
-  wobble += 0.12;
-  drawHelicopter(heli.x, heli.y, wobble);
+  wob += 0.12;
+  drawHeli(heli.x, heli.y, wob);
 }
 
-// game loop
-function loop(ts){
-  if(!lastTimestamp) lastTimestamp = ts;
-  const dt = Math.min(40, ts - lastTimestamp); // cap dt
-  lastTimestamp = ts;
+// main loop
+function loop(timestamp){
+  if(!lastTime) lastTime = timestamp;
+  let dt = timestamp - lastTime;
+  if(dt > 60) dt = 60; // cap
+  lastTime = timestamp;
   if(running && !paused){
     update(dt);
     render();
   }
   requestAnimationFrame(loop);
 }
-
-// start the RAF loop
+let lastTime = 0;
 requestAnimationFrame(loop);
 
-// control handlers: pointer and keyboard
-function startPress(){ pressing = true; }
-function endPress(){ pressing = false; }
+// start conditions
+function resetGame(){
+  // sizing ensures canvas correct
+  resizeCanvas();
+  obstacles = [];
+  spawnTimer = 0;
+  spawnInterval = 1400;
+  speed = 2.2;
+  score = 0;
+  scoreBox.textContent = 'Score: 0';
+  heli.y = gameH/2;
+  heli.vy = 0;
+  running = true;
+  paused = false;
+  lastTime = 0;
+  overlay.style.display = 'none';
+  setTimeout(()=> spawnObstacle(), 500);
+}
 
-window.addEventListener('pointerdown', (e)=>{
-  if(e.pointerType === 'mouse' && e.button !== 0) return;
-  startPress();
-});
-window.addEventListener('pointerup', endPress);
-window.addEventListener('touchstart', (e)=>{ e.preventDefault(); startPress(); }, {passive:false});
-window.addEventListener('touchend', (e)=>{ e.preventDefault(); endPress(); }, {passive:false});
-window.addEventListener('keydown', (e)=>{
-  if(e.code === 'Space'){ startPress(); e.preventDefault(); }
-  if(e.code === 'KeyP'){ togglePause(); }
-});
-window.addEventListener('keyup', (e)=>{ if(e.code === 'Space'){ endPress(); } });
+// game over
+function gameOver(reason){
+  running = false;
+  reasonText.textContent = reason || 'Game Over';
+  finalScore.textContent = score;
+  overlay.style.display = 'flex';
+  // update high score
+  if(score > highScore){ highScore = score; localStorage.setItem('helicopter_high', highScore); document.getElementById('highBox').textContent = highScore; }
+}
 
-// pause / restart / home
+// controls
+function pointerDown(){ pressing = true; }
+function pointerUp(){ pressing = false; }
+
+window.addEventListener('pointerdown', (e)=>{ if(e.pointerType === 'mouse' && e.button !== 0) return; pointerDown(); });
+window.addEventListener('pointerup', pointerUp);
+window.addEventListener('touchstart', (e)=>{ e.preventDefault(); pointerDown(); }, {passive:false});
+window.addEventListener('touchend', (e)=>{ e.preventDefault(); pointerUp(); }, {passive:false});
+window.addEventListener('keydown', (e)=>{ if(e.code === 'Space'){ pointerDown(); e.preventDefault(); } if(e.code === 'KeyP') togglePause(); });
+window.addEventListener('keyup', (e)=>{ if(e.code === 'Space'){ pointerUp(); } });
+
+// UI buttons
+const pauseBtn = document.getElementById('pauseBtn');
+const restartBtn = document.getElementById('restartBtn');
+const homeBtn = document.getElementById('homeBtn');
+const againBtn = document.getElementById('againBtn');
+const overlayHome = document.getElementById('overlayHome');
+const scoreBox = document.getElementById('scoreBox');
+
 pauseBtn.addEventListener('click', togglePause);
-restartBtn.addEventListener('click', resetGame);
+restartBtn.addEventListener('click', ()=> { resetGame(); });
 homeBtn.addEventListener('click', ()=> window.location.href = 'index.html');
-tryAgain.addEventListener('click', ()=> { overlay.style.display='none'; resetGame(); });
-toHome.addEventListener('click', ()=> window.location.href='index.html');
+againBtn.addEventListener('click', ()=> { resetGame(); });
+overlayHome.addEventListener('click', ()=> window.location.href = 'index.html');
 
 function togglePause(){
   paused = !paused;
   pauseBtn.textContent = paused ? 'Resume' : 'Pause';
 }
 
-// reset game
-function resetGame(){
-  // reset state
-  running = true; paused = false; score = 0; speed = 2.2; spawnInterval = 1500;
-  heli.y = gameHeight/2; heli.vy = 0;
-  obstacles = [];
-  spawnTimer = 0;
-  scoreDisplay.textContent = 'Score: 0';
-  overlay.style.display = 'none';
-  lastTimestamp = 0;
-  // small first obstacle after short delay
-  setTimeout(()=> createObstacle(), 400);
-}
-
-// end game
-function gameOver(message){
-  running = false;
-  overlay.style.display = 'flex';
-  panelMsg.textContent = message || 'Game Over';
-  finalScore.textContent = score;
-}
-
-// small utility: ensure first obstacle exists initially
-createObstacle();
-
-// helpers: responsive ensure
-window.addEventListener('resize', ()=>{
-  resize();
-  // keep helicopter inside bounds
-  heli.y = Math.min(gameHeight - heli.height/2, heli.y);
-});
-
-// start by resetting to initialize variables nicely
+// initial spawn and start
+spawnObstacle();
 resetGame();
 
+// helpers used earlier
+function spawnObstacle(){ /* defined above but re-declare to ensure it's present */ 
+  const gapBase = Math.max(90, 150 - Math.min(60, Math.floor(score/4)*6));
+  const gapH = gapBase;
+  const topMin = 32;
+  const topMax = Math.max(32, gameH - gapH - 120);
+  const topH = Math.floor(rand(topMin, topMax));
+  obstacles.push({ x: gameW + 20, width: 64, topH, gapH, passed:false });
+}
+
+function resizeHandler(){
+  resizeCanvas();
+  // keep heli inside
+  heli.y = Math.min(gameH - heli.height/2, heli.y);
+}
+window.addEventListener('resize', resizeHandler);
+
+// ensure topbar height is respected on mobile (some browsers hide top chrome); call resize on focus too.
+window.addEventListener('focus', ()=> { setTimeout(resizeHandler, 120); });
+
+// prevent accidental text selection on long press
+document.addEventListener('selectstart', e => e.preventDefault());
 </script>
 </body>
 </html>
