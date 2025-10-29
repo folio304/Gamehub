@@ -31,6 +31,26 @@
       50% { transform: translateY(-5px); }
     }
 
+    #targetColorDisplay {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 6px 14px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      color: #01579b;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    #targetCircle {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid #01579b;
+    }
+
     #scoreBoard {
       color: #01579b;
       font-size: 1.2em;
@@ -83,8 +103,16 @@
 </head>
 <body>
   <h1>🎈 Bubble Pop Game 🎈</h1>
+
+  <div id="targetColorDisplay">
+    Pop this color bubble:
+    <div id="targetCircle"></div>
+  </div>
+
   <div id="scoreBoard">Score: 0</div>
+
   <button onclick="window.location.href='index.html'">Return to Dashboard</button>
+
   <canvas id="bubbleCanvas"></canvas>
 
   <footer>Designed by Nitish Agrawal | All Rights Reserved</footer>
@@ -93,17 +121,25 @@
     const canvas = document.getElementById("bubbleCanvas");
     const ctx = canvas.getContext("2d");
     const scoreBoard = document.getElementById("scoreBoard");
+    const targetCircle = document.getElementById("targetCircle");
+
+    const popSound = new Audio(
+      "https://cdn.pixabay.com/audio/2022/03/15/audio_6f6b5a7468.mp3"
+    );
 
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     }
-
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
 
+    const colors = ["#ff8a80", "#82b1ff", "#80d8ff", "#a7ffeb", "#ccff90"];
     let bubbles = [];
     let score = 0;
+    let targetColor = colors[Math.floor(Math.random() * colors.length)];
+    targetCircle.style.background = targetColor;
+    let correctPops = 0;
 
     class Bubble {
       constructor(x, y, r, speed, color) {
@@ -112,13 +148,21 @@
         this.r = r;
         this.speed = speed;
         this.color = color;
+        this.opacity = 1;
+        this.isPopping = false;
       }
 
       draw() {
+        ctx.save();
+        ctx.globalAlpha = this.opacity;
         ctx.beginPath();
         const gradient = ctx.createRadialGradient(
-          this.x - this.r / 3, this.y - this.r / 3, this.r / 6,
-          this.x, this.y, this.r
+          this.x - this.r / 3,
+          this.y - this.r / 3,
+          this.r / 6,
+          this.x,
+          this.y,
+          this.r
         );
         gradient.addColorStop(0, "white");
         gradient.addColorStop(1, this.color);
@@ -126,20 +170,33 @@
         ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
         ctx.fill();
         ctx.closePath();
+        ctx.restore();
       }
 
       update() {
-        this.y -= this.speed;
-        if (this.y + this.r < 0) {
-          this.y = canvas.height + this.r;
-          this.x = Math.random() * canvas.width;
+        if (this.isPopping) {
+          this.r += 2;
+          this.opacity -= 0.1;
+          if (this.opacity <= 0) this.respawn();
+        } else {
+          this.y -= this.speed;
+          if (this.y + this.r < 0) this.respawn();
         }
         this.draw();
+      }
+
+      respawn() {
+        this.x = Math.random() * canvas.width;
+        this.y = canvas.height + this.r;
+        this.r = 20 + Math.random() * 15;
+        this.speed = 1 + Math.random() * 2;
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+        this.opacity = 1;
+        this.isPopping = false;
       }
     }
 
     function createBubbles() {
-      const colors = ["#ff8a80", "#82b1ff", "#80d8ff", "#a7ffeb", "#ccff90"];
       for (let i = 0; i < 30; i++) {
         const r = 20 + Math.random() * 15;
         const x = Math.random() * (canvas.width - r * 2) + r;
@@ -162,11 +219,23 @@
         const dy = y - bubble.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < bubble.r) {
-          bubble.y = canvas.height + bubble.r;
-          bubble.x = Math.random() * canvas.width;
-          score++;
-          scoreBoard.textContent = `Score: ${score}`;
+        if (distance < bubble.r && !bubble.isPopping) {
+          if (bubble.color === targetColor) {
+            score++;
+            correctPops++;
+            scoreBoard.textContent = `Score: ${score}`;
+            popSound.currentTime = 0;
+            popSound.play();
+
+            bubble.isPopping = true;
+
+            if (correctPops % 10 === 0) {
+              targetColor = colors[Math.floor(Math.random() * colors.length)];
+              targetCircle.style.background = targetColor;
+            }
+          } else {
+            // Wrong color - optional penalty or ignore
+          }
         }
       });
     }
