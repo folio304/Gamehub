@@ -1,68 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Car Avoider Game</title>
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      user-select: none;
     }
+
     body {
       overflow: hidden;
-      background: linear-gradient(#222, #000);
+      font-family: "Poppins", sans-serif;
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      font-family: Arial, sans-serif;
-      color: white;
+      background: radial-gradient(circle at center, #1b2735 0%, #090a0f 100%);
+      color: #fff;
     }
+
     #gameArea {
       position: relative;
       width: 100vw;
       height: 100vh;
-      background: #111;
+      background: linear-gradient(to bottom, #1e1e1e, #000);
       overflow: hidden;
-      border: 2px solid #444;
+      border-top: 3px solid #444;
+      border-bottom: 3px solid #444;
     }
+
+    /* Road lines */
     .road-line {
       position: absolute;
       width: 10px;
       height: 100px;
-      background: white;
+      background: rgba(255, 255, 255, 0.8);
       left: 50%;
       transform: translateX(-50%);
       animation: moveLines 1s linear infinite;
     }
+
     @keyframes moveLines {
       from { top: -100px; }
       to { top: 100vh; }
     }
+
     .car {
       position: absolute;
       bottom: 10%;
-      width: 50px;
-      height: 100px;
-      background: red;
-      border-radius: 8px;
+      width: 55px;
+      height: 110px;
+      background: linear-gradient(to top, #ff2e2e, #ff7575);
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
     }
+
     .enemy {
       position: absolute;
-      width: 50px;
-      height: 100px;
-      background: yellow;
+      width: 55px;
+      height: 110px;
+      background: linear-gradient(to top, #f7d51d, #ffef8b);
       top: -120px;
-      border-radius: 8px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(255, 255, 0, 0.6);
     }
+
     #score {
       position: absolute;
       top: 15px;
       left: 15px;
-      font-size: 24px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 20px;
+      box-shadow: 0 0 10px rgba(255,255,255,0.3);
     }
+
     #gameOver {
       position: absolute;
       top: 40%;
@@ -70,14 +87,68 @@
       text-align: center;
       font-size: 40px;
       display: none;
+      color: #fff;
+      text-shadow: 0 0 15px #ff3333;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .btn {
+      display: inline-block;
+      margin: 15px;
+      padding: 12px 25px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      color: #fff;
+    }
+
+    .restart-btn {
+      background: linear-gradient(45deg, #ff4444, #ff7777);
+      box-shadow: 0 0 15px rgba(255, 100, 100, 0.5);
+    }
+    .restart-btn:hover { transform: scale(1.05); }
+
+    .dashboard-btn {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(45deg, #4444ff, #7777ff);
+      box-shadow: 0 0 15px rgba(100, 100, 255, 0.5);
+    }
+
+    footer {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      text-align: center;
+      background: rgba(255,255,255,0.05);
+      padding: 10px;
+      font-size: 14px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      color: #ccc;
     }
   </style>
 </head>
 <body>
   <div id="gameArea">
     <div id="score">Score: 0</div>
-    <div id="gameOver">GAME OVER<br><small>Tap or Press Enter to Restart</small></div>
+    <div id="gameOver">
+      GAME OVER
+      <div>
+        <button class="btn restart-btn" id="restartBtn">Restart</button>
+      </div>
+    </div>
     <div class="car" id="playerCar"></div>
+    <button class="btn dashboard-btn" id="dashboardBtn">🏠 Return to Dashboard</button>
+    <footer>© 2025 Nitish’s Game Zone</footer>
   </div>
 
   <script>
@@ -85,6 +156,8 @@
     const playerCar = document.getElementById("playerCar");
     const scoreDisplay = document.getElementById("score");
     const gameOverDisplay = document.getElementById("gameOver");
+    const restartBtn = document.getElementById("restartBtn");
+    const dashboardBtn = document.getElementById("dashboardBtn");
 
     let player = { x: window.innerWidth / 2 - 25, y: window.innerHeight * 0.8 };
     let enemies = [];
@@ -99,6 +172,12 @@
     document.addEventListener("touchmove", e => {
       const touch = e.touches[0];
       player.x = touch.clientX - 25;
+    });
+
+    restartBtn.addEventListener("click", restartGame);
+    dashboardBtn.addEventListener("click", () => {
+      alert("Returning to Dashboard...");
+      window.location.href = "#"; // Replace with your dashboard link
     });
 
     function moveCar(e) {
@@ -131,7 +210,8 @@
           enemies.splice(index, 1);
           score++;
           speed += 0.05;
-          if (score % 10 === 0) enemy.style.background = `hsl(${Math.random() * 360}, 80%, 50%)`;
+          if (score % 10 === 0)
+            enemy.style.background = `linear-gradient(to top, hsl(${Math.random() * 360}, 80%, 60%), hsl(${Math.random() * 360}, 80%, 70%))`;
         }
 
         if (isCollide(playerCar, enemy)) endGame();
