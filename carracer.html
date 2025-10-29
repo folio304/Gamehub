@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Car Avoider Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      overflow: hidden;
+      background: linear-gradient(#222, #000);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    #gameArea {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: #111;
+      overflow: hidden;
+      border: 2px solid #444;
+    }
+    .road-line {
+      position: absolute;
+      width: 10px;
+      height: 100px;
+      background: white;
+      left: 50%;
+      transform: translateX(-50%);
+      animation: moveLines 1s linear infinite;
+    }
+    @keyframes moveLines {
+      from { top: -100px; }
+      to { top: 100vh; }
+    }
+    .car {
+      position: absolute;
+      bottom: 10%;
+      width: 50px;
+      height: 100px;
+      background: red;
+      border-radius: 8px;
+    }
+    .enemy {
+      position: absolute;
+      width: 50px;
+      height: 100px;
+      background: yellow;
+      top: -120px;
+      border-radius: 8px;
+    }
+    #score {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      font-size: 24px;
+    }
+    #gameOver {
+      position: absolute;
+      top: 40%;
+      width: 100%;
+      text-align: center;
+      font-size: 40px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="gameArea">
+    <div id="score">Score: 0</div>
+    <div id="gameOver">GAME OVER<br><small>Tap or Press Enter to Restart</small></div>
+    <div class="car" id="playerCar"></div>
+  </div>
+
+  <script>
+    const gameArea = document.getElementById("gameArea");
+    const playerCar = document.getElementById("playerCar");
+    const scoreDisplay = document.getElementById("score");
+    const gameOverDisplay = document.getElementById("gameOver");
+
+    let player = { x: window.innerWidth / 2 - 25, y: window.innerHeight * 0.8 };
+    let enemies = [];
+    let score = 0;
+    let gameRunning = true;
+    let speed = 5;
+
+    playerCar.style.left = player.x + "px";
+    playerCar.style.top = player.y + "px";
+
+    document.addEventListener("keydown", moveCar);
+    document.addEventListener("touchmove", e => {
+      const touch = e.touches[0];
+      player.x = touch.clientX - 25;
+    });
+
+    function moveCar(e) {
+      if (!gameRunning && e.key === "Enter") restartGame();
+      if (!gameRunning) return;
+      if (e.key === "ArrowLeft" && player.x > 0) player.x -= 40;
+      if (e.key === "ArrowRight" && player.x < window.innerWidth - 50) player.x += 40;
+    }
+
+    function createEnemy() {
+      if (!gameRunning) return;
+      const enemy = document.createElement("div");
+      enemy.classList.add("enemy");
+      enemy.style.left = Math.random() * (window.innerWidth - 50) + "px";
+      gameArea.appendChild(enemy);
+      enemies.push(enemy);
+    }
+
+    function updateGame() {
+      if (!gameRunning) return;
+
+      playerCar.style.left = player.x + "px";
+
+      enemies.forEach((enemy, index) => {
+        let top = parseInt(window.getComputedStyle(enemy).getPropertyValue("top"));
+        enemy.style.top = top + speed + "px";
+
+        if (top > window.innerHeight) {
+          enemy.remove();
+          enemies.splice(index, 1);
+          score++;
+          speed += 0.05;
+          if (score % 10 === 0) enemy.style.background = `hsl(${Math.random() * 360}, 80%, 50%)`;
+        }
+
+        if (isCollide(playerCar, enemy)) endGame();
+      });
+
+      scoreDisplay.textContent = "Score: " + score;
+      requestAnimationFrame(updateGame);
+    }
+
+    function isCollide(a, b) {
+      const rectA = a.getBoundingClientRect();
+      const rectB = b.getBoundingClientRect();
+      return !(
+        rectA.bottom < rectB.top ||
+        rectA.top > rectB.bottom ||
+        rectA.right < rectB.left ||
+        rectA.left > rectB.right
+      );
+    }
+
+    function endGame() {
+      gameRunning = false;
+      gameOverDisplay.style.display = "block";
+    }
+
+    function restartGame() {
+      enemies.forEach(e => e.remove());
+      enemies = [];
+      score = 0;
+      speed = 5;
+      gameRunning = true;
+      gameOverDisplay.style.display = "none";
+      requestAnimationFrame(updateGame);
+    }
+
+    setInterval(createEnemy, 1000);
+    requestAnimationFrame(updateGame);
+  </script>
+</body>
+</html>
