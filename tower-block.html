@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Tower Blocks | Nitish's Game Zone</title>
+<style>
+  :root{
+    --bg1: #071124; --bg2:#0f1724;
+    --accent: #00ffb3;
+    --muted:#9fb4c8;
+  }
+  html,body{height:100%;margin:0;font-family:Inter, Poppins, system-ui, sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#e6eef8}
+  .wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:18px;box-sizing:border-box}
+  h1{margin:0;color:var(--accent);font-size:1.4rem;letter-spacing:0.6px}
+  #uiTop{width:100%;max-width:980px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  #scoreBox{background:rgba(255,255,255,0.03);padding:8px 14px;border-radius:10px;color:var(--muted);font-weight:700}
+  #controls{display:flex;gap:8px}
+  .btn{background:linear-gradient(90deg,#ff416c,#ff4b2b);color:#fff;border:none;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+  .btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+  canvas{border-radius:12px;display:block;box-shadow:0 10px 30px rgba(0,0,0,0.6);background:linear-gradient(180deg,#06121b,#072033)}
+  footer{position:fixed;bottom:10px;left:0;right:0;text-align:center;color:var(--muted);font-size:0.9rem}
+  .hint{color:var(--muted);font-size:0.9rem;margin-top:6px}
+  @media (max-width:720px){
+    h1{font-size:1.1rem}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="uiTop">
+      <h1>Tower Blocks 🧱</h1>
+      <div style="display:flex;gap:10px;align-items:center">
+        <div id="scoreBox">Score: <span id="score">0</span></div>
+        <div id="levelBox" style="background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:10px;color:var(--muted);font-weight:700">Level: <span id="level">1</span></div>
+        <div id="controls">
+          <button id="restartBtn" class="btn">Restart</button>
+          <button id="homeBtn" class="btn secondary">Return to Dashboard</button>
+        </div>
+      </div>
+    </div>
+
+    <canvas id="game" width="720" height="600" aria-label="Tower Blocks game canvas"></canvas>
+    <div class="hint">Tap / Click or press <strong>Space</strong> to drop the block.</div>
+  </div>
+
+  <footer>Designed by Nitish Agrawal | All rights reserved © 2025</footer>
+
+<script>
+/*
+ Tower Blocks game
+ - Moving block horizontally at top; you drop it to stack
+ - Overlap determines trim; if no overlap -> game over
+ - Block width shrinks gradually (makes game harder)
+ - Score increments per successful drop; level speed increases
+*/
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const scoreEl = document.getElementById('score');
+const levelEl = document.getElementById('level');
+const restartBtn = document.getElementById('restartBtn');
+const homeBtn = document.getElementById('homeBtn');
+
+function fitCanvas(){
+  // Keep logical canvas size fixed for gameplay, but scale to window
+  const maxW = Math.min(window.innerWidth*0.95, 900);
+  const maxH = Math.min(window.innerHeight*0.78, 800);
+  canvas.style.width = maxW + 'px';
+  canvas.style.height = maxH + 'px';
+}
+window.addEventListener('resize', fitCanvas);
+fitCanvas();
+
+/* GAME PARAMETERS */
+const ROW_HEIGHT = 40;        // height per block layer
+const START_WIDTH = 300;      // initial block width in px
+const MIN_WIDTH = 30;         // minimal block width
+const BASE_SPEED = 2.2;       // base horizontal speed
+const SPEED_INC = 0.3;        // speed increase per level
+
+let stack = [];               // array of stacked blocks {x, width, y}
+let moving = null;            // current moving block {x, width, y, dir, speed}
+let animId = null;
+let score = 0;
+let level = 1;
+let gameOver = false;
+
+/* initialize */
+function resetGame(){
+  // reset logical canvas drawing dimensions (use internal resolution)
+  // We'll use canvas.width/height as drawing resolution for crispness
+  canvas.width = 720;
+  canvas.height = 600;
+
+  stack = [];
+  score = 0;
+  level = 1;
+  gameOver = false;
+  scoreEl.textContent = score;
+  levelEl.textContent = level;
+
+  // place base block at bottom center
+  const base = {
+    x: (canvas.width - START_WIDTH)/2,
+    width: START_WIDTH,
+    y: canvas.height - ROW_HEIGHT
+  };
+  stack.push(base);
+
+  // create initial moving block above the base
+  const startY = base.y - ROW_HEIGHT;
+  moving = createMovingBlock(base.width, startY);
+
+  // start loop
+  if(animId) cancelAnimationFrame(animId);
+  animId = requestAnimationFrame(loop);
+}
+
+/* create a moving block with given width at y */
+function createMovingBlock(width, y){
+  const speed = BASE_SPEED + (level - 1) * SPEED_INC;
+  return {
+    x: 0,
+    width,
+    y,
+    dir: 1,     // 1 = right, -1 = left
+    speed
+  };
+}
+
+/* draw helpers */
+function draw(){
+  // clear
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // background grid glow
+  ctx.fillStyle = '#071722';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // draw stacked blocks (bottom to top)
+  for(let i=0;i<stack.length;i++){
+    const b = stack[i];
+    drawBlock(b.x, b.y, b.width, '#00a3ff');
+  }
+
+  // draw moving block
+  if(moving){
+    drawBlock(moving.x, moving.y, moving.width, '#00ffb3');
+  }
+
+  // if game over show overlay
+  if(gameOver){
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#fff';
+    ctx.font = '28px Poppins, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Game Over', canvas.width/2, canvas.height/2 - 10);
+    ctx.font = '18px Poppins, sans-serif';
+    ctx.fillText(`Score: ${score}`, canvas.width/2, canvas.height/2 + 20);
+    ctx.fillText('Press Restart to play again', canvas.width/2, canvas.height/2 + 50);
+  }
+}
+
+function drawBlock(x, y, w, color){
+  // rounded rectangle
+  const h = ROW_HEIGHT - 6;
+  const r = 6;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+  ctx.fill();
+
+  // inner shadow
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.stroke();
+}
+
+/* game loop */
+function loop(){
+  if(gameOver){ draw(); return; }
+
+  // move block
+  moving.x += moving.dir * moving.speed;
+  // bounce edges
+  if(moving.x + moving.width >= canvas.width){
+    moving.dir = -1;
+    moving.x = canvas.width - moving.width;
+  } else if(moving.x <= 0){
+    moving.dir = 1;
+    moving.x = 0;
+  }
+
+  draw();
+  animId = requestAnimationFrame(loop);
+}
+
+/* drop block */
+function dropBlock(){
+  if(gameOver || !moving) return;
+  // place: compare with top of stack (last)
+  const top = stack[stack.length - 1];
+  const cur = moving;
+  // compute overlap range
+  const overlapLeft = Math.max(cur.x, top.x);
+  const overlapRight = Math.min(cur.x + cur.width, top.x + top.width);
+  const overlap = overlapRight - overlapLeft;
+
+  if(overlap <= 0){
+    // missed entirely
+    gameOver = true;
+    draw();
+    return;
+  }
+
+  // Successful placement: trim block to overlap
+  const newWidth = Math.max(MIN_WIDTH, overlap);
+  const newX = overlapLeft;
+  const newY = top.y - ROW_HEIGHT;
+
+  // push the new trimmed block as part of stack
+  const placed = { x: newX, width: newWidth, y: newY };
+  stack.push(placed);
+
+  // increment score & maybe level
+  score++;
+  scoreEl.textContent = score;
+  if(score % 5 === 0){
+    level++;
+    levelEl.textContent = level;
+  }
+
+  // Prepare next moving block with the trimmed width
+  moving = createMovingBlock(newWidth, newY - ROW_HEIGHT);
+
+  // If tower goes beyond top -> shift everything down (keep visual inside canvas)
+  if(placed.y < 40){
+    // shift all blocks down
+    const shift = 80;
+    for(let b of stack) b.y += shift;
+    moving.y += shift;
+  }
+
+  // Make moving block start from left always to vary
+  moving.x = 0;
+  moving.dir = 1;
+}
+
+/* Input handlers */
+function onPointer(e){
+  // drop on click/touch
+  dropBlock();
+}
+canvas.addEventListener('click', onPointer);
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  dropBlock();
+}, {passive:false});
+
+// keyboard: space to drop
+window.addEventListener('keydown', (e) => {
+  if(e.code === 'Space') {
+    e.preventDefault();
+    dropBlock();
+  }
+  if(e.key === 'r' || e.key === 'R') resetGame();
+});
+
+restartBtn.addEventListener('click', resetGame);
+homeBtn.addEventListener('click', ()=> window.location.href = 'index.html');
+
+/* start game */
+resetGame();
+</script>
+</body>
+</html>
